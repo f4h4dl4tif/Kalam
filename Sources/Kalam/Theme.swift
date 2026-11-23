@@ -16,6 +16,7 @@ enum Pref {
     static let reminderEnabled = "reminderEnabled"
     static let reminderMinutes = "reminderMinutes"
     static let sidebarMode = "sidebarMode"
+    static let glass = "glassTheme"
 
     static func registerDefaults() {
         UserDefaults.standard.register(defaults: [
@@ -33,6 +34,7 @@ enum Pref {
             reminderEnabled: false,
             reminderMinutes: 21 * 60,
             sidebarMode: "calendar",
+            glass: false,
         ])
     }
 }
@@ -110,5 +112,41 @@ struct ThemeReader<Content: View>: View {
 
     var body: some View {
         content(Palette.resolve(ThemeChoice(rawValue: theme) ?? .system, scheme))
+    }
+}
+
+/// Liquid Glass theme (macOS 26+). Off by default; when off, Kalam looks exactly as before.
+enum GlassTheme {
+    static var supported: Bool {
+        if #available(macOS 26, *) { return true }
+        return false
+    }
+}
+
+extension View {
+    /// Puts a floating surface on Liquid Glass when the Glass theme is on, otherwise on its usual background.
+    @ViewBuilder
+    func glassSurface<S: Shape, B: View>(_ glassOn: Bool, in shape: S, tint: Color? = nil,
+                                         @ViewBuilder plain: () -> B) -> some View {
+        if #available(macOS 26, *), glassOn {
+            self.glassEffect(tint.map { SwiftUI.Glass.regular.tint($0) } ?? SwiftUI.Glass.regular, in: shape)
+        } else {
+            self.background(plain())
+        }
+    }
+}
+
+extension View {
+    /// Liquid Glass button style when the Glass theme is on; otherwise the button keeps its usual style
+    /// (`.borderedProminent` for prominent buttons).
+    @ViewBuilder
+    func glassButton(_ glassOn: Bool, prominent: Bool = false) -> some View {
+        if #available(macOS 26, *), glassOn {
+            if prominent { self.buttonStyle(.glassProminent) } else { self.buttonStyle(.glass) }
+        } else if prominent {
+            self.buttonStyle(.borderedProminent)
+        } else {
+            self
+        }
     }
 }

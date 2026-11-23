@@ -110,6 +110,7 @@ enum PromptChecker {
 struct PromptCard: View {
     @EnvironmentObject var store: Store
     @AppStorage(Pref.aiChecks) private var aiChecks = true
+    @AppStorage(Pref.glass) private var glass = false
     let palette: Palette
 
     var body: some View {
@@ -176,8 +177,10 @@ struct PromptCard: View {
             }
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 12).fill(palette.tint.opacity(0.07)))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(palette.tint.opacity(0.18)))
+        .glassSurface(glass, in: RoundedRectangle(cornerRadius: 12)) {
+            RoundedRectangle(cornerRadius: 12).fill(palette.tint.opacity(0.07))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(palette.tint.opacity(0.18)))
+        }
         .task(id: "\(store.day)|\(set.id)|\(sections.last ?? "")") {
             guard aiChecks, PromptChecker.isAvailable else { return }
             try? await Task.sleep(nanoseconds: 2_500_000_000)

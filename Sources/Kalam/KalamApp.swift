@@ -7,7 +7,12 @@ struct KalamApp: App {
     @StateObject private var lock = LockManager.shared
     @AppStorage(Pref.showMenuBar) private var showMenuBar = true
 
-    init() { Pref.registerDefaults() }
+    init() {
+        #if DEBUG
+        GlassSnapshot.prepare()
+        #endif
+        Pref.registerDefaults()
+    }
 
     var body: some Scene {
         Window("Kalam", id: "main") {
@@ -33,6 +38,18 @@ struct KalamApp: App {
             Image(systemName: "pencil.line")
         }
         .menuBarExtraStyle(.window)
+
+        #if DEBUG
+        // Only opened by --glass-snapshot: the menu bar panel's content in a window that can be captured.
+        Window("Menu Bar Panel", id: "glass-snapshot-menubar") {
+            MenuBarView()
+                .environmentObject(store)
+                .environmentObject(lock)
+                .background(.regularMaterial)
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        #endif
     }
 }
 

@@ -7,6 +7,7 @@ struct EditorView: View {
     @AppStorage(Pref.lineHeight) private var lineHeight = 1.55
     @AppStorage(Pref.columnWidth) private var columnWidth = 660.0
     @AppStorage(Pref.typewriter) private var typewriter = false
+    @AppStorage(Pref.glass) private var glass = false
 
     var body: some View {
         ThemeReader { palette in
@@ -67,7 +68,7 @@ struct EditorView: View {
                 Text(toast)
                     .font(.system(size: 12, weight: .medium))
                     .padding(.horizontal, 14).padding(.vertical, 8)
-                    .background(.regularMaterial, in: Capsule())
+                    .glassSurface(glass, in: Capsule()) { Capsule().fill(.regularMaterial) }
                     .padding(.top, 10)
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
@@ -81,6 +82,7 @@ struct EditorView: View {
 struct PageCounter: View {
     @EnvironmentObject var store: Store
     let palette: Palette
+    @AppStorage(Pref.glass) private var glass = false
 
     var body: some View {
         let words = TextStats(store.bodyText).words
@@ -104,7 +106,9 @@ struct PageCounter: View {
                     }
             }
             .padding(.horizontal, 12).padding(.vertical, 8)
-            .background(palette.bg.opacity(0.92), in: RoundedRectangle(cornerRadius: 9))
+            .glassSurface(glass, in: RoundedRectangle(cornerRadius: 9)) {
+                RoundedRectangle(cornerRadius: 9).fill(palette.bg.opacity(0.92))
+            }
         }
         .buttonStyle(.plain)
         .help("\(words) words · click for details (⌘I)")

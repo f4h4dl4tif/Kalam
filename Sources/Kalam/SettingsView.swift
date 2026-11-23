@@ -21,11 +21,19 @@ struct WritingSettings: View {
     @AppStorage(Pref.lineHeight) private var lineHeight = 1.55
     @AppStorage(Pref.columnWidth) private var columnWidth = 660.0
     @AppStorage(Pref.typewriter) private var typewriter = false
+    @AppStorage(Pref.glass) private var glass = false
 
     var body: some View {
         Form {
             Picker("Theme", selection: $theme) {
                 ForEach(ThemeChoice.allCases) { Text($0.rawValue).tag($0.rawValue) }
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Toggle("Liquid Glass theme", isOn: $glass).disabled(!GlassTheme.supported)
+                Text(GlassTheme.supported
+                     ? "Floating cards, buttons and notices sit on Apple's Liquid Glass. The page stays plain paper."
+                     : "Requires macOS 26.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
             Picker("Font", selection: $font) {
                 ForEach(EditorFont.allCases) { f in Text(f.rawValue).font(f.font(13)).tag(f.rawValue) }

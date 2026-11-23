@@ -10,6 +10,9 @@ struct ContentView: View {
     @State private var showShortcuts = false
     @State private var monitor: Any?
     @State private var holdTimer: Timer?
+    #if DEBUG
+    @Environment(\.openSettings) private var openSettings
+    #endif
 
     var body: some View {
         ZStack {
@@ -37,6 +40,10 @@ struct ContentView: View {
         .preferredColorScheme((ThemeChoice(rawValue: theme) ?? .system).forcedScheme)
         .onAppear {
             AppActions.openMain = { openWindow(id: "main") }
+            #if DEBUG
+            GlassSnapshot.openSettings = { openSettings() }
+            GlassSnapshot.openMenuBarPanel = { openWindow(id: "glass-snapshot-menubar") }
+            #endif
             installHoldCommandMonitor()
         }
         .onDisappear {
@@ -118,6 +125,7 @@ struct ContentView: View {
 struct MenuBarView: View {
     @EnvironmentObject var store: Store
     @EnvironmentObject var lock: LockManager
+    @AppStorage(Pref.glass) private var glass = false
     @State private var note = ""
 
     var body: some View {
@@ -133,7 +141,7 @@ struct MenuBarView: View {
             }
             if lock.isLocked {
                 Label("Kalam is locked", systemImage: "lock.fill").foregroundStyle(.secondary)
-                Button("Open Kalam") { AppActions.showToday() }
+                Button("Open Kalam") { AppActions.showToday() }.glassButton(glass)
             } else {
                 VStack(alignment: .leading, spacing: 4) {
                     ProgressView(value: min(1, pages / Double(goal)))
@@ -144,7 +152,7 @@ struct MenuBarView: View {
                     .lineLimit(3...6)
                     .textFieldStyle(.roundedBorder)
                 HStack {
-                    Button("Open Today") { AppActions.showToday() }
+                    Button("Open Today") { AppActions.showToday() }.glassButton(glass)
                     Spacer()
                     Button("Add to Today") {
                         store.appendToToday(note)
@@ -153,7 +161,7 @@ struct MenuBarView: View {
                     }
                     .keyboardShortcut(.return, modifiers: .command)
                     .disabled(note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    .buttonStyle(.borderedProminent)
+                    .glassButton(glass, prominent: true)
                 }
             }
             Divider()

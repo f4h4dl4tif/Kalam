@@ -61,6 +61,7 @@ final class LockManager: ObservableObject {
 
 struct LockView: View {
     @EnvironmentObject var lock: LockManager
+    @AppStorage(Pref.glass) private var glass = false
 
     var body: some View {
         ThemeReader { palette in
@@ -70,6 +71,7 @@ struct LockView: View {
                 Button("Unlock with \(LockManager.methodName)") { lock.unlock() }
                     .controlSize(.large)
                     .keyboardShortcut(.defaultAction)
+                    .glassButton(glass)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(palette.bg)
@@ -145,6 +147,12 @@ enum AppActions {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        #if DEBUG
+        if let i = CommandLine.arguments.firstIndex(of: "--glass-snapshot"), i + 1 < CommandLine.arguments.count {
+            GlassSnapshot.run(into: CommandLine.arguments[i + 1])
+            return
+        }
+        #endif
         HotKey.shared.action = { AppActions.showToday() }
         HotKey.shared.setEnabled(UserDefaults.standard.bool(forKey: Pref.hotKey))
         Reminders.reschedule()
